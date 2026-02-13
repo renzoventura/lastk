@@ -1,0 +1,158 @@
+//
+//  BackgroundSelectionView.swift
+//  lastk
+//
+//  Screen to select a background image: Camera Roll (default), Presets and Backgrounds disabled.
+//  Instagram-style flow: segmented tabs, album dropdown, 3-column photo grid.
+//
+
+import SwiftUI
+
+enum BackgroundSourceSegment: String, CaseIterable {
+    case cameraRoll = "Camera Roll"
+    case presets = "Presets"
+    case backgrounds = "Backgrounds"
+}
+
+/// Identifiable wrapper to present the editor with a loaded image.
+private struct EditorImageWrapper: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
+struct BackgroundSelectionView: View {
+    let runItem: RunFeedItem?
+    var onDismiss: (() -> Void)?
+    @State private var selectedSegment: BackgroundSourceSegment = .cameraRoll
+    @State private var photoService = PhotoLibraryService()
+    @State private var loadingAssetForEditor: PhotoAssetItem?
+    @State private var imageForEditor: EditorImageWrapper?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            segmentPicker
+            if selectedSegment == .cameraRoll {
+                albumSelector
+                cameraRollGrid
+            } else {
+                disabledPlaceholder
+            }
+        }
+        .navigationTitle("Select Background")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await photoService.prepare()
+        }
+        .onDisappear {
+            onDismiss?()
+        }
+        .fullScreenCover(item: $imageForEditor) { wrapper in
+            NavigationStack {
+                PhotoEditorView(image: wrapper.image) {
+                    imageForEditor = nil
+                }
+            }
+        }
+        .overlay {
+            if loadingAssetForEditor != nil {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                ProgressView("Loading…")
+            }
+        }
+    }
+
+    private var segmentPicker: some View {
+        Picker("Source", selection: $selectedSegment) {
+            ForEach(BackgroundSourceSegment.allCases, id: \.self) { segment in
+                Text(segment.rawValue).tag(segment)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private var albumSelector: some View {
+        if let selected = photoService.selectedAlbum {
+            Menu {
+                ForEach(photoService.albums) { album in
+                    Button(album.title) {
+                        Task { await photoService.selectAlbum(album) }
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selected.title)
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
+                }
+                .font(.subheadline)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private var cameraRollGrid: some View {
+        if let error = photoService.loadError {
+            ContentUnavailableView(
+                "Photo Access Needed",
+                systemImage: "photo.on.rectangle.angled",
+                description: Text(error)
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            ScrollView {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 2),
+                    GridItem(.flexible(), spacing: 2),
+                    GridItem(.flexible(), spacing: 2)
+                ], spacing: 2) {
+                    ForEach(photoService.assets) { item in
+                        Button {
+                            openEditor(for: item)
+                        } label: {
+                            PhotoThumbnailCell(assetId: item.id, photoService: photoService)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(2)
+            }
+            .scrollIndicators(.hidden)
+        }
+    }
+
+    private var disabledPlaceholder: some View {
+        ContentUnavailableView(
+            "Coming Soon",
+            systemImage: "photo.stack",
+            description: Text("Presets and custom backgrounds will be available in a future update.")
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func openEditor(for item: PhotoAssetItem) {
+        loadingAssetForEditor = item
+        Task {
+            guard let img = await photoService.loadFullImage(for: item.asset) else {
+                await MainActor.run { loadingAssetForEditor = nil }
+                return
+            }
+            await MainActor.run {
+                imageForEditor = EditorImageWrapper(image: img)
+                loadingAssetForEditor = nil
+            }
+        }
+    }
+}
+
+#Preview {
+    NavigationStack {
+        BackgroundSelectionView(runItem: nil, onDismiss: nil)
+    }
+}
