@@ -29,18 +29,20 @@ struct PhotoEditorView: View {
     @State private var exportCanvasSize: CGSize = CGSize(width: 390, height: 844)
     @Environment(\.displayScale) private var displayScale
 
+    /// Sticker button sits this many points above the bottom (above the action bar).
+    private let stickerButtonOffsetFromBottom: CGFloat = 88
+
     var body: some View {
         ZStack(alignment: .bottom) {
             canvasWithSizeCapture
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(alignment: .bottom) {
-                    floatingStickerButton
-                        .padding(.bottom, 24)
-                }
             bottomActionBar
         }
         .ignoresSafeArea(edges: .bottom)
         .background(.gray)
+        .overlay {
+            stickerButtonOverlay
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -91,6 +93,19 @@ struct PhotoEditorView: View {
         .frame(minHeight: 72)
         .background(.black)
         .safeAreaPadding(.bottom, 8)
+    }
+
+    /// Sticker button in its own overlay layer so it doesn't block canvas gestures. Positioned by screen size so only the button receives touches; rest pass through.
+    private var stickerButtonOverlay: some View {
+        GeometryReader { geo in
+            ZStack {
+                Color.clear
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .allowsHitTesting(false)
+                floatingStickerButton
+                    .position(x: geo.size.width / 2, y: geo.size.height - stickerButtonOffsetFromBottom)
+            }
+        }
     }
 
     private var floatingStickerButton: some View {
