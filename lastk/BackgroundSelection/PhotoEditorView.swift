@@ -30,7 +30,7 @@ struct PhotoEditorView: View {
     @Environment(\.displayScale) private var displayScale
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             canvasWithSizeCapture
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .bottom) {
@@ -39,6 +39,7 @@ struct PhotoEditorView: View {
                 }
             bottomActionBar
         }
+        .ignoresSafeArea(edges: .bottom)
         .background(.gray)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -87,7 +88,9 @@ struct PhotoEditorView: View {
             .padding(.vertical, 16)
             .padding(.horizontal, 24)
         }
+        .frame(minHeight: 72)
         .background(.black)
+        .safeAreaPadding(.bottom, 8)
     }
 
     private var floatingStickerButton: some View {
@@ -137,20 +140,20 @@ struct PhotoEditorView: View {
     }
 
     private func stickerOverlayLayer(canvasSize: CGSize) -> some View {
-        Color.clear
-            .contentShape(.rect)
-            .frame(width: canvasSize.width, height: canvasSize.height)
-            .overlay {
-                ForEach(stickers) { sticker in
-                    StickerOverlayView(
-                        sticker: sticker,
-                        canvasSize: canvasSize,
-                        onUpdate: { newPosition, newScale in
-                            updateSticker(id: sticker.id, position: newPosition, scale: newScale)
-                        }
-                    )
-                }
+        ZStack {
+            Color.clear
+                .frame(width: canvasSize.width, height: canvasSize.height)
+                .allowsHitTesting(false)
+            ForEach(stickers) { sticker in
+                StickerOverlayView(
+                    sticker: sticker,
+                    canvasSize: canvasSize,
+                    onUpdate: { newPosition, newScale in
+                        updateSticker(id: sticker.id, position: newPosition, scale: newScale)
+                    }
+                )
             }
+        }
     }
 
     private func addSticker(option: StickerOption) {
