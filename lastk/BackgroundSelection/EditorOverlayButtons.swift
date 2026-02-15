@@ -39,22 +39,27 @@ struct EditorOverlayButtons: View {
     }
 
     private var closeButton: some View {
-        Button("Close", systemImage: "xmark", action: onClose)
-            .font(.body)
-            .bold()
-            .foregroundStyle(.white)
-            .frame(width: 36, height: 36)
-            .background(.ultraThinMaterial, in: .circle)
+        Button(action: onClose) {
+            Image(systemName: "xmark")
+                .font(.body)
+                .bold()
+        }
+        .foregroundStyle(.white)
+        .frame(width: 44, height: 44)
+        .background(.ultraThinMaterial, in: .circle)
+        .accessibilityLabel("Close")
     }
 
     private var addStickerButton: some View {
-        Button("Add sticker", systemImage: "plus", action: onAddSticker)
-            .labelStyle(.iconOnly)
-            .font(.title2)
-            .bold()
-            .foregroundStyle(.primary)
-            .frame(width: 56, height: 56)
-            .background(.ultraThinMaterial, in: .circle)
-            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+        Button(action: onAddSticker) {
+            Image(systemName: "plus")
+                .font(.title2)
+                .bold()
+        }
+        .foregroundStyle(.primary)
+        .frame(width: 56, height: 56)
+        .background(.ultraThinMaterial, in: .circle)
+        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+        .accessibilityLabel("Add sticker")
     }
 }
