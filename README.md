@@ -1,75 +1,169 @@
 # LastK
 
-**Your runs. Your vibe. One tap to share.**
+**Your performance. Beautifully presented.**
 
-LastK turns your Strava runs into shareable cards with your own photos and stickers—no design skills required. Pick a run, pick a background, add some flair, and post.
+Every runner already creates something worth sharing.
+LastK turns the data into the design.
+
+<video src="lastk%20demo.MP4" width="320" autoplay loop muted playsinline></video>
 
 ---
 
-## What’s the deal?
+## What is LastK?
 
-You run. Strava tracks it. LastK makes it look good.
+LastK connects to Strava, pulls your run data, and transforms it into premium share-ready graphics.
 
-Log in with Strava, scroll your run feed, tap a run, choose a photo from your camera roll, tweak it in the editor, throw on stickers (distance, pace, location, etc.), then **Save** to your photos or **Share** to Instagram, Messages, or wherever. The whole flow stays inside the app: feed → background picker → editor → export.
+Pick a run. Choose a photo. Add data-driven stickers — distance, pace, time, location, PRs — styled with intention. Export to your camera roll or share directly to Instagram Stories.
+
+No tracking. No dashboards. No noise.
+Just your performance, presented the way it deserves.
 
 ---
 
 ## Features
 
-### Strava
+### Strava Integration
 
-- **Sign in with Strava** — OAuth; no separate account.
-- **Run feed** — Your runs in a clean grid, newest first, with infinite scroll.
+- OAuth sign-in — no separate account
+- Automatic run feed with infinite scroll
+- Real data: distance, pace, time, location, route maps
 
-### Run cards
+### Photo Editor
 
-- **Map preview** — Each card shows the route on a 1:1 map (from Strava’s polyline).
-- **Stats at a glance** — Distance (e.g. 5.42 km), pace (e.g. 5:17/km), and date right on the card.
-- **Tap to customize** — Tap a card to pick a background and open the editor.
+- Full-screen zoomable, pannable canvas
+- Pinch to zoom, drag to reposition
+- Stickers can be dragged freely — including off-edge for creative compositions
+- Export matches what you see, pixel for pixel
 
-### Background selection
+### Data-Driven Sticker System
 
-- **Camera Roll** — Browse Recents, Favorites, All Albums, or any album.
-- **Instagram-style grid** — 3-column photo grid, smooth scrolling.
-- **One tap** — Select a photo and the editor opens with that image.
+25 distinct sticker layouts across 7 categories:
 
-### Photo editor
+- **Big Metric** — Hero numbers with supporting details
+- **Bars & Strips** — Compact horizontal performance strips
+- **Badges** — Rounded, centered compositions with labels
+- **Editorial** — Structured label-over-value hierarchy
+- **Compositions** — Asymmetric layouts with visual tension
+- **Minimal & Special** — Clean single-metric and location stickers
+- **PR Celebration** — Six dedicated layouts for personal records
 
-- **Zoom & pan** — Pinch to zoom (0.25×–4×), drag to move; you can even drag the image off-screen for a cropped look.
-- **Stickers** — Floating “+” button opens a sticker picker. Add distance badges, location, pace, elevation, time, and more. Stickers are draggable and pinchable; they stay within the canvas and keep aspect ratio.
-- **Save** — Export the current canvas (image + stickers) to your photo library.
-- **Share** — Same export via the system share sheet (Stories, Messages, etc.).
-- **Clean layout** — Black top (Back) and bottom (Story / Save / Share), gray canvas. Sticker button floats over the canvas.
+Every sticker is dynamically populated from the selected run.
+No mock data. No placeholders.
 
-### Stickers
+### PR Celebration System
 
-- **Pre-made options** — e.g. “5.42 KM”, “San Francisco”, “5:17 /km”, “120 m”, “32:04”, “42 KM”, “10K” (mock set; can be wired to run data later).
-- **Drag to move, pinch to resize** — Each sticker keeps its own position and scale.
-- **Included in export** — Whatever you see in the editor is what gets saved and shared.
+When it's a personal best, it should feel like one.
 
-### Tech & UX
+Six dedicated PR sticker formats:
 
-- **SwiftUI + Swift 6** — `@Observable`, modern concurrency, no `ObservableObject`.
-- **iOS 26** — Liquid glass where used; native feel.
-- **Maps** — MapKit snapshots for route thumbnails; no third-party map SDKs.
-- **Photos** — Photo library for camera roll and saving; no cloud dependency for images.
+- **Bold Announcement** — Large "NEW PR" with dominant time
+- **Medal** — Double-border badge that feels earned
+- **Minimal Elite** — Understated, premium, performance-focused
+- **Championship** — "PERSONAL BEST" spelled out with authority
+- **Highlight Frame** — Accent-bordered spotlight with glow
+- **Compact Social** — Small pill for stacking with other stickers
+
+PR stickers auto-detect race category from distance — Mile, 5K, 10K, Half Marathon, Marathon — within 5% tolerance.
+
+Entrance animation: scale-in with a one-time accent glow pulse.
+
+### Sharing
+
+- **Instagram Stories** — One tap. Canvas exports to pasteboard, Instagram opens with the image as your story background.
+- **Save** — Export to photo library at display scale
+- **Share** — System share sheet for any destination
+
+### Design System
+
+- Dark theme with strong orange accent
+- Centralized color, typography, spacing, and corner radius tokens
+- Four reusable button styles: Accent, Accent Outline, Ghost, Floating Circle
+- Custom display fonts: Humane Bold, ROUND8-FOUR
+- Built for future light mode
 
 ---
 
-## Flow in one sentence
+## Philosophy
 
-**Strava → Run feed → Tap run → Pick photo → Edit (zoom/pan + stickers) → Save or Share.**
+Runners create meaning through effort.
+
+The distance, the pace, the time — these aren't just numbers.
+They're evidence of discipline. Of showing up. Of pushing through.
+
+Data deserves presentation.
+Performance is personal.
+Design amplifies achievement.
+
+LastK exists because the work was already done.
+It just needed a frame.
 
 ---
 
-## Secrets & API keys
+## Tech Stack
 
-**You’re not committing any secrets.** Strava client ID and client secret are read at runtime from:
+### Architecture
 
-- **Environment variables** — `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET` (e.g. in the Xcode scheme: Edit Scheme → Run → Arguments → Environment Variables), or  
-- **Info.plist** — if you add them under the target’s custom keys.
+View-centric SwiftUI with `@Observable` services. Views own transient state. Observable classes manage shared and persistent state. No third-party dependencies.
 
-The code in `StravaConfiguration.swift` does not hardcode these values. **Keep it that way:** don’t add your real client secret to any committed file. Use a local `.xcconfig` (and add it to `.gitignore`) or scheme env vars so only your machine has the secret.
+### State Management
+
+| Layer | Mechanism |
+|---|---|
+| Auth & session | `@Observable` `StravaSession`, injected via `.environment()` |
+| Feed | `@Observable` `RunFeedViewModel` with pagination |
+| Photo library | `@Observable` `PhotoLibraryService`, local to picker |
+| Canvas | `@State` arrays and bindings, local to editor |
+
+### Networking
+
+- Raw `URLSession` with `async/await`
+- Static API clients (`StravaAuthService`, `StravaAPIClient`)
+- OAuth2 with automatic token refresh via Keychain
+
+### Strava API
+
+- `ASWebAuthenticationSession` for OAuth login
+- Secure token storage in Keychain (`StravaTokenStore`)
+- Activity feed with polyline decoding for MapKit route rendering
+- In-memory map snapshot cache to prevent scroll jitter
+
+### Sticker Engine
+
+```
+RunFeedItem
+  → .stickerData (immutable snapshot)
+    → StickerLayoutType.allCases.filter(isAvailable)
+      → StickerLayoutRouter (switch → view)
+        → StickerOverlayView (drag, pinch, animate)
+          → StickerDrawingView (export)
+```
+
+Adding a new sticker: add a case to the enum, create the view, register in the router. The picker, canvas, and export pipeline adapt automatically.
+
+### Design Tokens
+
+All visual constants live in `AppTheme.swift`:
+
+- `AppColors` — backgrounds, text, accent, utility
+- `AppFont` — metric, header, body, metadata, button
+- `AppSpacing` — xs through xxl
+- `AppRadius` — sm, md, lg, card
+
+---
+
+## Project Structure
+
+```
+lastk/
+├── Strava/              Auth, API client, token store, models
+├── Feed/                Run feed, cards, map snapshots, polyline decoder
+├── Profile/             Athlete display
+├── Login/               Strava OAuth screen
+├── BackgroundSelection/ Photo picker, editor, canvas, export
+│   └── StickerLayouts/  25 layout views, data model, router, PR system
+├── Theme/               Design system
+└── Resources/Fonts/     Humane-Bold, ROUND8-FOUR
+```
 
 ---
 
@@ -77,17 +171,14 @@ The code in `StravaConfiguration.swift` does not hardcode these values. **Keep i
 
 - iOS 26+
 - Strava account
-- Photo library access (for choosing backgrounds and saving)
+- Photo library access
 
 ---
 
-## Project layout
+## Secrets
 
-- **Feed** — Run cards, feed VM, map snapshot, polyline decoding.
-- **Profile** — Athlete summary when logged in.
-- **Strava** — Auth, API client, token store, config.
-- **BackgroundSelection** — Photo library service, album picker, photo grid, sticker model/picker/overlay, zoomable canvas, editor, export.
+Strava client ID and secret are never committed. They are read at runtime from environment variables (`STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`) or a local `.xcconfig` added to `.gitignore`.
 
 ---
 
-*LastK — because the last K is the one you share.*
+*LastK — because the run was the hard part.*
