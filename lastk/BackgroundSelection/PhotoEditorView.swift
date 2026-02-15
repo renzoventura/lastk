@@ -29,28 +29,36 @@ struct PhotoEditorView: View {
     @State private var exportCanvasSize: CGSize = CGSize(width: 390, height: 844)
     @Environment(\.displayScale) private var displayScale
 
-    /// Sticker button sits this many points above the bottom (above the action bar).
-    private let stickerButtonOffsetFromBottom: CGFloat = 88
+    private let floatingStickerBottomPadding: CGFloat = 12
+    private let bottomActionBarHeight: CGFloat = 88
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            canvasWithSizeCapture
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        GeometryReader { geometry in
+            let desiredCanvasHeight = geometry.size.width * (3.0 / 4.0)
+            let maxCanvasHeight = max(0, geometry.size.height - bottomActionBarHeight)
+            let canvasHeight = min(desiredCanvasHeight, maxCanvasHeight)
+
+            VStack(spacing: 0) {
+                canvasArea
+                    .frame(width: geometry.size.width, height: canvasHeight)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             bottomActionBar
         }
-        .ignoresSafeArea(edges: .bottom)
-        .background(.gray)
-        .overlay {
-            stickerButtonOverlay
+        .background {
+            Color.gray.ignoresSafeArea()
         }
-        .navigationBarBackButtonHidden(true)
+        // .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Back", systemImage: "chevron.left", action: onDismiss)
             }
         }
-        .toolbarBackground(.black, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
+        // .toolbarBackground(.black, for: .navigationBar)
+        // .toolbarBackground(.visible, for: .navigationBar)
         .sheet(item: $shareItem) { shareable in
             ShareSheetView(activityItems: [shareable.image])
                 .onDisappear { shareItem = nil }
@@ -66,6 +74,14 @@ struct PhotoEditorView: View {
                 saveSuccessOverlay
             }
         }
+    }
+
+    private var canvasArea: some View {
+        canvasWithSizeCapture
+            .overlay(alignment: .bottom) {
+                floatingStickerButton
+                    .padding(.bottom, floatingStickerBottomPadding)
+            }
     }
 
     private var bottomActionBar: some View {
@@ -86,26 +102,11 @@ struct PhotoEditorView: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 24)
         }
-        .frame(minHeight: 72)
+        .frame(height: bottomActionBarHeight)
         .background(.black)
-        .safeAreaPadding(.bottom, 8)
-    }
-
-    /// Sticker button in its own overlay layer so it doesn't block canvas gestures. Positioned by screen size so only the button receives touches; rest pass through.
-    private var stickerButtonOverlay: some View {
-        GeometryReader { geo in
-            ZStack {
-                Color.clear
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .allowsHitTesting(false)
-                floatingStickerButton
-                    .position(x: geo.size.width / 2, y: geo.size.height - stickerButtonOffsetFromBottom)
-            }
-        }
     }
 
     private var floatingStickerButton: some View {
