@@ -5,7 +5,7 @@
 Every runner already creates something worth sharing.
 LastK turns the data into the design.
 
-<video src="lastk%20demo.mov" width="320" autoplay loop muted playsinline></video>
+https://github.com/user-attachments/assets/0beaf45c-fbfe-4d19-985d-9008ee2cae51
 
 ---
 
