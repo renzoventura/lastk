@@ -34,6 +34,12 @@ struct StickerLayoutRouter: View {
         case .minimalDistance: MinimalDistanceSticker(data: data)
         case .minimalPace: MinimalPaceSticker(data: data)
         case .dateRun: DateRunSticker(data: data)
+        case .prBoldAnnouncement: PRBoldAnnouncementSticker(data: data)
+        case .prMedal: PRMedalSticker(data: data)
+        case .prMinimalElite: PRMinimalEliteSticker(data: data)
+        case .prChampionship: PRChampionshipSticker(data: data)
+        case .prHighlightFrame: PRHighlightFrameSticker(data: data)
+        case .prCompactSocial: PRCompactSocialSticker(data: data)
         }
     }
 }

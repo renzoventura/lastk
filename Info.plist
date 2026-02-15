@@ -12,6 +12,7 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>strava</string>
+		<string>instagram-stories</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>

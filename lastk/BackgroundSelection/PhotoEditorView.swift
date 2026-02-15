@@ -67,7 +67,7 @@ struct PhotoEditorView: View {
                 isSaving: isSaving,
                 onShare: { exportAndShare() },
                 onSave: { saveToPhotoLibrary() },
-                onStory: {}
+                onStory: { shareToInstagramStory() }
             )
         }
         .background {
@@ -176,6 +176,22 @@ struct PhotoEditorView: View {
     private func exportAndShare() {
         guard let rendered = exportImage() else { return }
         shareItem = ShareableImage(image: rendered)
+    }
+
+    private func shareToInstagramStory() {
+        guard let rendered = exportImage(),
+              let imageData = rendered.pngData() else { return }
+
+        let pasteboardItems: [[String: Any]] = [
+            ["com.instagram.sharedSticker.backgroundImage": imageData]
+        ]
+        let pasteboardOptions: [UIPasteboard.OptionsKey: Any] = [
+            .expirationDate: Date().addingTimeInterval(5 * 60)
+        ]
+        UIPasteboard.general.setItems(pasteboardItems, options: pasteboardOptions)
+
+        guard let url = URL(string: "instagram-stories://share?source_application=com.lastk") else { return }
+        UIApplication.shared.open(url)
     }
 }
 

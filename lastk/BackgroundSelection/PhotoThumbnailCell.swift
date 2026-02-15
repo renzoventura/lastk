@@ -17,15 +17,14 @@ struct PhotoThumbnailCell: View {
             if let image {
                 Image(uiImage: image)
                     .resizable()
-                    .aspectRatio(1, contentMode: .fill)
+                    .aspectRatio(contentMode: .fit)
             } else {
                 Rectangle()
                     .fill(.quaternary)
-                    .aspectRatio(1, contentMode: .fill)
+                    .aspectRatio(3 / 4, contentMode: .fit)
                     .overlay { ProgressView() }
             }
         }
-        .clipped()
         .task(id: assetId) {
             image = await photoService.loadThumbnail(for: assetId)
         }

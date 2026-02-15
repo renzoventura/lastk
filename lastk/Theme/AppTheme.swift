@@ -117,6 +117,26 @@ struct AccentButtonStyle: ButtonStyle {
     }
 }
 
+/// Outlined accent button style (inverse of AccentButtonStyle).
+struct AccentOutlineButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(AppFont.button)
+            .foregroundStyle(configuration.isPressed ? AppColors.accent.opacity(0.7) : AppColors.accent)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.vertical, AppSpacing.sm + 4)
+            .background(
+                configuration.isPressed ? AppColors.accent.opacity(0.1) : Color.clear,
+                in: .rect(cornerRadius: AppRadius.md)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: AppRadius.md)
+                    .stroke(configuration.isPressed ? AppColors.accent.opacity(0.5) : AppColors.accent, lineWidth: 1.5)
+            }
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+    }
+}
+
 /// Secondary ghost button style.
 struct GhostButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {

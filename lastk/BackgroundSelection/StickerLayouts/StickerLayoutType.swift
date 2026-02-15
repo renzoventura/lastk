@@ -16,6 +16,7 @@ enum StickerCategory: String, CaseIterable {
     case editorial = "Editorial"
     case compositions = "Compositions"
     case minimal = "Minimal & Special"
+    case prCelebration = "PR Celebration"
 }
 
 /// All available sticker layout types.
@@ -53,6 +54,14 @@ enum StickerLayoutType: String, CaseIterable, Hashable, Identifiable {
     case minimalPace
     case dateRun
 
+    // PR Celebration
+    case prBoldAnnouncement
+    case prMedal
+    case prMinimalElite
+    case prChampionship
+    case prHighlightFrame
+    case prCompactSocial
+
     var title: String {
         switch self {
         case .bigDistance: "Big Distance"
@@ -74,6 +83,12 @@ enum StickerLayoutType: String, CaseIterable, Hashable, Identifiable {
         case .minimalDistance: "Minimal Distance"
         case .minimalPace: "Minimal Pace"
         case .dateRun: "Date Run"
+        case .prBoldAnnouncement: "PR Announcement"
+        case .prMedal: "PR Medal"
+        case .prMinimalElite: "PR Elite"
+        case .prChampionship: "PR Championship"
+        case .prHighlightFrame: "PR Highlight"
+        case .prCompactSocial: "PR Compact"
         }
     }
 
@@ -85,8 +100,13 @@ enum StickerLayoutType: String, CaseIterable, Hashable, Identifiable {
         case .editorialFull, .editorialDuo, .performanceCard: .editorial
         case .asymmetricLeft, .asymmetricRight, .splitHighlight: .compositions
         case .locationStamp, .minimalDistance, .minimalPace, .dateRun: .minimal
+        case .prBoldAnnouncement, .prMedal, .prMinimalElite,
+             .prChampionship, .prHighlightFrame, .prCompactSocial: .prCelebration
         }
     }
+
+    /// Whether this layout is a PR celebration sticker.
+    var isPR: Bool { category == .prCelebration }
 
     /// Whether this layout requires specific data to be present.
     func isAvailable(for data: StickerData) -> Bool {
@@ -99,6 +119,7 @@ enum StickerLayoutType: String, CaseIterable, Hashable, Identifiable {
             return data.isLongRun
         case .locationStamp:
             return data.locationDisplay != nil
+        // PR stickers are always available — user decides when it's a PR
         default:
             return true
         }

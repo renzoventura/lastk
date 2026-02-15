@@ -4,6 +4,7 @@
 //
 //  Renders one sticker on the canvas with drag (reposition) and pinch (resize).
 //  Routes to the appropriate layout view via StickerLayoutRouter.
+//  PR stickers get a celebratory entrance animation with a glow pulse.
 //
 
 import SwiftUI
@@ -18,6 +19,8 @@ struct StickerOverlayView: View {
 
     @State private var dragOffset: CGSize = .zero
     @State private var scaleAtPinchStart: CGFloat?
+    @State private var appeared = false
+    @State private var glowActive = false
 
     var body: some View {
         let effectivePosition = CGPoint(
@@ -27,7 +30,14 @@ struct StickerOverlayView: View {
 
         StickerLayoutRouter(layoutType: sticker.layoutType, data: sticker.data)
             .fixedSize()
-            .scaleEffect(sticker.scale)
+            .shadow(
+                color: sticker.layoutType.isPR && glowActive
+                    ? AppColors.accent.opacity(0.5)
+                    : .clear,
+                radius: glowActive ? 16 : 0
+            )
+            .scaleEffect(sticker.scale * (appeared ? 1 : 0.7))
+            .opacity(appeared ? 1 : 0)
             .position(effectivePosition)
             .highPriorityGesture(
                 MagnificationGesture()
@@ -52,6 +62,19 @@ struct StickerOverlayView: View {
                         dragOffset = .zero
                     }
             )
+            .onAppear {
+                withAnimation(.spring(duration: 0.45, bounce: 0.35)) {
+                    appeared = true
+                }
+                if sticker.layoutType.isPR {
+                    withAnimation(.easeOut(duration: 0.5).delay(0.15)) {
+                        glowActive = true
+                    }
+                    withAnimation(.easeOut(duration: 0.6).delay(0.8)) {
+                        glowActive = false
+                    }
+                }
+            }
     }
 }
 
@@ -61,7 +84,7 @@ private extension CGFloat {
     }
 }
 
-/// Renders a single sticker for export (no gestures). Same visual as StickerOverlayView.
+/// Renders a single sticker for export (no gestures, no animation).
 struct StickerDrawingView: View {
     let sticker: StickerItem
 
