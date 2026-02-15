@@ -92,6 +92,7 @@ struct PhotoEditorView: View {
         }
         .sheet(isPresented: $showStickerPicker) {
             StickerPickerView(
+                data: runItem.stickerData,
                 options: runItem.stickerOptions,
                 onSelect: { addSticker(option: $0) },
                 onDismiss: { showStickerPicker = false }
@@ -115,7 +116,11 @@ struct PhotoEditorView: View {
 
     private func addSticker(option: RunStickerOption) {
         let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
-        stickers.append(StickerItem(text: option.stickerText, position: center, fontStyle: option.fontStyle))
+        stickers.append(StickerItem(
+            layoutType: option.layoutType,
+            data: runItem.stickerData,
+            position: center
+        ))
     }
 
     private func updateSticker(id: UUID, position: CGPoint, scale: CGFloat) {

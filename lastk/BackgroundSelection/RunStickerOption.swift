@@ -2,63 +2,28 @@
 //  RunStickerOption.swift
 //  lastk
 //
-//  Dynamic sticker options derived from a selected run.
-//  Each option can carry a specific font style for rendering.
+//  Generates sticker layout options for a run. Each option maps to a distinct
+//  visual composition (StickerLayoutType). Options are filtered based on
+//  available data — layouts that require pace won't appear for runs without it.
 //
 
 import Foundation
 
-/// A selectable sticker option shown in the sticker picker.
+/// A selectable sticker layout option shown in the picker.
 struct RunStickerOption: Identifiable, Hashable {
-    enum Kind: String, Hashable {
-        case distance
-        case pace
-        case movingTime
-        case location
-        case date
-        // Future: heartRate, cadence, splits, elevationGain, etc.
-    }
+    var id: StickerLayoutType { layoutType }
+    let layoutType: StickerLayoutType
+    let category: StickerCategory
 
-    /// Unique id combining kind + font style so the same metric in different fonts are distinct.
-    var id: String { "\(kind.rawValue)-\(fontStyle.rawValue)" }
-    let kind: Kind
-    /// Short label for the picker cell subtitle.
-    let title: String
-    /// What will be rendered on-canvas when placed.
-    let stickerText: String
-    /// Font style for this sticker option.
-    let fontStyle: StickerFontStyle
+    var title: String { layoutType.title }
 }
 
 extension RunFeedItem {
-    /// Sticker options for this run, derived from real Strava data.
-    /// Includes the default system font options plus font-styled distance variants.
+    /// All sticker layout options available for this run.
     var stickerOptions: [RunStickerOption] {
-        var options: [RunStickerOption] = []
-
-        let distanceText = "\(distanceKm.formatted(.number.precision(.fractionLength(2)))) km"
-
-        // Default system-font stickers
-        options.append(.init(kind: .distance, title: "Distance", stickerText: distanceText, fontStyle: .system))
-
-        if let pacePerKmDisplay {
-            options.append(.init(kind: .pace, title: "Pace", stickerText: "\(pacePerKmDisplay) /km", fontStyle: .system))
-        }
-
-        let movingDuration = Duration.seconds(movingTimeSeconds)
-        let timeText = movingDuration.formatted(.time(pattern: .minuteSecond))
-        options.append(.init(kind: .movingTime, title: "Time", stickerText: timeText, fontStyle: .system))
-
-        if let locationDisplay {
-            options.append(.init(kind: .location, title: "Location", stickerText: locationDisplay, fontStyle: .system))
-        }
-
-        options.append(.init(kind: .date, title: "Date", stickerText: dateDisplay, fontStyle: .system))
-
-        // Font-styled distance variants
-        options.append(.init(kind: .distance, title: "Distance · Humane", stickerText: distanceText, fontStyle: .humane))
-        options.append(.init(kind: .distance, title: "Distance · Round 8", stickerText: distanceText, fontStyle: .round8))
-
-        return options
+        let data = stickerData
+        return StickerLayoutType.allCases
+            .filter { $0.isAvailable(for: data) }
+            .map { RunStickerOption(layoutType: $0, category: $0.category) }
     }
 }

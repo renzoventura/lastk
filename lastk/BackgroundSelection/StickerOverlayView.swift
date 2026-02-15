@@ -3,7 +3,7 @@
 //  lastk
 //
 //  Renders one sticker on the canvas with drag (reposition) and pinch (resize).
-//  Supports custom font styles. Keeps sticker within canvas bounds.
+//  Routes to the appropriate layout view via StickerLayoutRouter.
 //
 
 import SwiftUI
@@ -13,9 +13,9 @@ struct StickerOverlayView: View {
     let canvasSize: CGSize
     let onUpdate: (CGPoint, CGFloat) -> Void
 
-    private let minScale: CGFloat = 0.5
+    private let minScale: CGFloat = 0.4
     private let maxScale: CGFloat = 3
-    private let nominalSize = CGSize(width: 100, height: 36)
+    private let nominalSize = CGSize(width: 160, height: 60)
 
     @State private var dragOffset: CGSize = .zero
     @State private var scaleAtPinchStart: CGFloat?
@@ -28,7 +28,8 @@ struct StickerOverlayView: View {
         let effectiveScale = sticker.scale
         let clampedPosition = clampPosition(effectivePosition, scale: effectiveScale)
 
-        stickerLabel
+        StickerLayoutRouter(layoutType: sticker.layoutType, data: sticker.data)
+            .fixedSize()
             .scaleEffect(effectiveScale)
             .position(clampedPosition)
             .highPriorityGesture(
@@ -57,17 +58,6 @@ struct StickerOverlayView: View {
             )
     }
 
-    private var stickerLabel: some View {
-        Text(sticker.text)
-            .font(sticker.fontStyle.font)
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.black.opacity(0.6), in: .capsule)
-    }
-
     private func clampPosition(_ center: CGPoint, scale: CGFloat) -> CGPoint {
         let w = nominalSize.width * scale / 2
         let h = nominalSize.height * scale / 2
@@ -93,14 +83,8 @@ struct StickerDrawingView: View {
     let sticker: StickerItem
 
     var body: some View {
-        Text(sticker.text)
-            .font(sticker.fontStyle.font)
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.black.opacity(0.6), in: .capsule)
+        StickerLayoutRouter(layoutType: sticker.layoutType, data: sticker.data)
+            .fixedSize()
             .scaleEffect(sticker.scale)
             .position(sticker.position)
     }
