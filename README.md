@@ -2,8 +2,7 @@
 
 **Your performance. Beautifully presented.**
 
-Every runner already creates something worth sharing.
-LastK turns the data into the design.
+Every runner is an artist. Every run a canvas. LastK is just the brush.
 
 https://github.com/user-attachments/assets/0beaf45c-fbfe-4d19-985d-9008ee2cae51
 
@@ -48,24 +47,6 @@ Just your performance, presented the way it deserves.
 - **PR Celebration** — Six dedicated layouts for personal records
 
 Every sticker is dynamically populated from the selected run.
-No mock data. No placeholders.
-
-### PR Celebration System
-
-When it's a personal best, it should feel like one.
-
-Six dedicated PR sticker formats:
-
-- **Bold Announcement** — Large "NEW PR" with dominant time
-- **Medal** — Double-border badge that feels earned
-- **Minimal Elite** — Understated, premium, performance-focused
-- **Championship** — "PERSONAL BEST" spelled out with authority
-- **Highlight Frame** — Accent-bordered spotlight with glow
-- **Compact Social** — Small pill for stacking with other stickers
-
-PR stickers auto-detect race category from distance — Mile, 5K, 10K, Half Marathon, Marathon — within 5% tolerance.
-
-Entrance animation: scale-in with a one-time accent glow pulse.
 
 ### Sharing
 
@@ -80,22 +61,6 @@ Entrance animation: scale-in with a one-time accent glow pulse.
 - Four reusable button styles: Accent, Accent Outline, Ghost, Floating Circle
 - Custom display fonts: Humane Bold, ROUND8-FOUR
 - Built for future light mode
-
----
-
-## Philosophy
-
-Runners create meaning through effort.
-
-The distance, the pace, the time — these aren't just numbers.
-They're evidence of discipline. Of showing up. Of pushing through.
-
-Data deserves presentation.
-Performance is personal.
-Design amplifies achievement.
-
-LastK exists because the work was already done.
-It just needed a frame.
 
 ---
 
@@ -172,12 +137,6 @@ lastk/
 - iOS 26+
 - Strava account
 - Photo library access
-
----
-
-## Secrets
-
-Strava client ID and secret are never committed. They are read at runtime from environment variables (`STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`) or a local `.xcconfig` added to `.gitignore`.
 
 ---
 
