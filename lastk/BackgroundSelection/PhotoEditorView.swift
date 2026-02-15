@@ -2,63 +2,97 @@
 //  PhotoEditorView.swift
 //  lastk
 //
-//  Full-screen editor: zoom/pan canvas, Back, and bottom action bar (Story disabled, Save, Share).
+//  Composition root for the photo editor screen.
+//
+//  Layer order (back → front):
+//    1. Safe area management  – handled by the root layout
+//    2. EditingCanvasView     – zoomable image + stickers
+//    3. EditorBottomActionView – fixed bottom controls
+//    4. EditorOverlayButtons  – floating close & add-sticker buttons
 //
 
 import SwiftUI
 import Photos
 import UIKit
 
-/// Wraps UIImage for use with .sheet(item:).
+// MARK: - Shareable wrapper
+
+/// Wraps UIImage for use with `.sheet(item:)`.
 struct ShareableImage: Identifiable {
     let id = UUID()
     let image: UIImage
 }
 
+// MARK: - PhotoEditorView
+
 struct PhotoEditorView: View {
     let image: UIImage
     let onDismiss: () -> Void
 
+    // MARK: Canvas state
+
     @State private var scaleMultiplier: CGFloat = 1
     @State private var offset: CGSize = .zero
     @State private var stickers: [StickerItem] = []
+    @State private var canvasSize: CGSize = .zero
+
+    // MARK: UI state
+
     @State private var showStickerPicker = false
     @State private var isSaving = false
     @State private var saveSuccess = false
     @State private var shareItem: ShareableImage?
-    @State private var exportCanvasSize: CGSize = CGSize(width: 390, height: 844)
+
     @Environment(\.displayScale) private var displayScale
 
-    private let floatingStickerBottomPadding: CGFloat = 12
-    private let bottomActionBarHeight: CGFloat = 88
+    // MARK: Body
 
     var body: some View {
-        GeometryReader { geometry in
-            let desiredCanvasHeight = geometry.size.width * (3.0 / 4.0)
-            let maxCanvasHeight = max(0, geometry.size.height - bottomActionBarHeight)
-            let canvasHeight = min(desiredCanvasHeight, maxCanvasHeight)
+        // Layer 1: Safe area management
+        // The VStack lives inside the safe area; the background bleeds edge-to-edge.
+        VStack(spacing: 0) {
+            // Layer 2: Editing canvas – fills all space above the bottom bar
+            EditingCanvasView(
+                image: image,
+                scaleMultiplier: $scaleMultiplier,
+                offset: $offset,
+                stickers: stickers,
+                onStickerUpdate: { id, position, scale in
+                    updateSticker(id: id, position: position, scale: scale)
+                },
+                onCanvasSizeChange: { newSize in
+                    canvasSize = newSize
+                }
+            )
 
-            VStack(spacing: 0) {
-                canvasArea
-                    .frame(width: geometry.size.width, height: canvasHeight)
-                Spacer(minLength: 0)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            bottomActionBar
+            // Layer 3: Fixed bottom controls
+            EditorBottomActionView(
+                isSaving: isSaving,
+                onShare: { exportAndShare() },
+                onSave: { saveToPhotoLibrary() },
+                onStory: {}
+            )
         }
         .background {
-            Color.gray.ignoresSafeArea()
+            Color.black.ignoresSafeArea()
         }
-        // .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Back", systemImage: "chevron.left", action: onDismiss)
+        // Layer 4: Floating overlay buttons
+        .overlay {
+            EditorOverlayButtons(
+                bottomBarHeight: EditorBottomActionView.height,
+                onClose: onDismiss,
+                onAddSticker: { showStickerPicker = true }
+            )
+        }
+        // Feedback overlay
+        .overlay {
+            if saveSuccess {
+                savedFeedbackBadge
             }
         }
-        // .toolbarBackground(.black, for: .navigationBar)
-        // .toolbarBackground(.visible, for: .navigationBar)
+        // Navigation
+        .toolbar(.hidden, for: .navigationBar)
+        // Sheets
         .sheet(item: $shareItem) { shareable in
             ShareSheetView(activityItems: [shareable.image])
                 .onDisappear { shareItem = nil }
@@ -69,62 +103,11 @@ struct PhotoEditorView: View {
                 onDismiss: { showStickerPicker = false }
             )
         }
-        .overlay {
-            if saveSuccess {
-                saveSuccessOverlay
-            }
-        }
     }
 
-    private var canvasArea: some View {
-        canvasWithSizeCapture
-            .overlay(alignment: .bottom) {
-                floatingStickerButton
-                    .padding(.bottom, floatingStickerBottomPadding)
-            }
-    }
+    // MARK: - Sub-views
 
-    private var bottomActionBar: some View {
-        VStack(spacing: 0) {
-            Divider()
-            HStack(spacing: 24) {
-                Button("Story", systemImage: "square.and.arrow.up") {}
-                    .disabled(true)
-                    .foregroundStyle(.secondary)
-
-                Button("Save", systemImage: "square.and.arrow.down") {
-                    saveToPhotoLibrary()
-                }
-                .disabled(isSaving)
-
-                Button("Share", systemImage: "square.and.arrow.up") {
-                    exportAndShare()
-                }
-                .buttonStyle(.borderedProminent)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, 24)
-        }
-        .frame(height: bottomActionBarHeight)
-        .background(.black)
-    }
-
-    private var floatingStickerButton: some View {
-        Button {
-            showStickerPicker = true
-        } label: {
-            Image(systemName: "plus")
-                .font(.title2)
-                .bold()
-                .foregroundStyle(.primary)
-                .frame(width: 56, height: 56)
-                .background(.ultraThinMaterial, in: .circle)
-                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var saveSuccessOverlay: some View {
+    private var savedFeedbackBadge: some View {
         Text("Saved")
             .font(.subheadline)
             .padding(.horizontal, 16)
@@ -133,49 +116,11 @@ struct PhotoEditorView: View {
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
     }
 
-    private var canvasWithSizeCapture: some View {
-        ZStack {
-            ZoomableImageCanvas(
-                image: image,
-                scaleMultiplier: $scaleMultiplier,
-                offset: $offset
-            )
-            if exportCanvasSize.width > 0, exportCanvasSize.height > 0 {
-                stickerOverlayLayer(canvasSize: exportCanvasSize)
-            }
-        }
-        .background(
-            GeometryReader { geometry in
-                Color.clear
-                    .onChange(of: geometry.size) { _, newSize in
-                        exportCanvasSize = newSize
-                    }
-                    .onAppear { exportCanvasSize = geometry.size }
-            }
-        )
-    }
-
-    private func stickerOverlayLayer(canvasSize: CGSize) -> some View {
-        ZStack {
-            Color.clear
-                .frame(width: canvasSize.width, height: canvasSize.height)
-                .allowsHitTesting(false)
-            ForEach(stickers) { sticker in
-                StickerOverlayView(
-                    sticker: sticker,
-                    canvasSize: canvasSize,
-                    onUpdate: { newPosition, newScale in
-                        updateSticker(id: sticker.id, position: newPosition, scale: newScale)
-                    }
-                )
-            }
-        }
-    }
+    // MARK: - Sticker management
 
     private func addSticker(option: StickerOption) {
-        let center = CGPoint(x: exportCanvasSize.width / 2, y: exportCanvasSize.height / 2)
-        let sticker = StickerItem(text: option.displayText, position: center, scale: 1)
-        stickers.append(sticker)
+        let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
+        stickers.append(StickerItem(text: option.displayText, position: center))
     }
 
     private func updateSticker(id: UUID, position: CGPoint, scale: CGFloat) {
@@ -184,13 +129,16 @@ struct PhotoEditorView: View {
         stickers[index].scale = scale
     }
 
+    // MARK: - Export
+
     private func exportImage() -> UIImage? {
+        guard canvasSize.width > 0, canvasSize.height > 0 else { return nil }
         let content = ExportCanvasContent(
             image: image,
             scale: scaleMultiplier,
             offset: offset,
             stickers: stickers,
-            canvasSize: exportCanvasSize
+            canvasSize: canvasSize
         )
         let renderer = ImageRenderer(content: content)
         renderer.scale = displayScale
@@ -231,6 +179,8 @@ struct PhotoEditorView: View {
     }
 }
 
+// MARK: - Share sheet
+
 /// Wraps UIActivityViewController for sharing.
 struct ShareSheetView: UIViewControllerRepresentable {
     let activityItems: [Any]
@@ -239,8 +189,10 @@ struct ShareSheetView: UIViewControllerRepresentable {
         UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
     }
 
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    func updateUIViewController(_: UIActivityViewController, context: Context) {}
 }
+
+// MARK: - Preview
 
 #Preview {
     NavigationStack {
