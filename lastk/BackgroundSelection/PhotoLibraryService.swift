@@ -133,15 +133,18 @@ final class PhotoLibraryService {
         guard let item = assets.first(where: { $0.id == assetId }) else { return nil }
         return await withCheckedContinuation { continuation in
             let options = PHImageRequestOptions()
-            options.deliveryMode = .opportunistic
+            options.deliveryMode = .highQualityFormat
             options.isNetworkAccessAllowed = true
             options.isSynchronous = false
+            var hasResumed = false
             imageManager.requestImage(
                 for: item.asset,
                 targetSize: thumbnailSize,
                 contentMode: .aspectFill,
                 options: options
             ) { image, _ in
+                guard !hasResumed else { return }
+                hasResumed = true
                 continuation.resume(returning: image)
             }
         }
@@ -164,12 +167,15 @@ final class PhotoLibraryService {
             options.deliveryMode = .highQualityFormat
             options.isNetworkAccessAllowed = true
             options.isSynchronous = false
+            var hasResumed = false
             imageManager.requestImage(
                 for: asset,
                 targetSize: targetSize,
                 contentMode: .aspectFit,
                 options: options
             ) { image, _ in
+                guard !hasResumed else { return }
+                hasResumed = true
                 continuation.resume(returning: image)
             }
         }

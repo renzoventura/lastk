@@ -15,7 +15,6 @@ struct StickerOverlayView: View {
 
     private let minScale: CGFloat = 0.4
     private let maxScale: CGFloat = 3
-    private let nominalSize = CGSize(width: 160, height: 60)
 
     @State private var dragOffset: CGSize = .zero
     @State private var scaleAtPinchStart: CGFloat?
@@ -25,13 +24,11 @@ struct StickerOverlayView: View {
             x: sticker.position.x + dragOffset.width,
             y: sticker.position.y + dragOffset.height
         )
-        let effectiveScale = sticker.scale
-        let clampedPosition = clampPosition(effectivePosition, scale: effectiveScale)
 
         StickerLayoutRouter(layoutType: sticker.layoutType, data: sticker.data)
             .fixedSize()
-            .scaleEffect(effectiveScale)
-            .position(clampedPosition)
+            .scaleEffect(sticker.scale)
+            .position(effectivePosition)
             .highPriorityGesture(
                 MagnificationGesture()
                     .onChanged { value in
@@ -51,24 +48,10 @@ struct StickerOverlayView: View {
                         dragOffset = value.translation
                     }
                     .onEnded { _ in
-                        let newPosition = clampPosition(effectivePosition, scale: sticker.scale)
-                        onUpdate(newPosition, sticker.scale)
+                        onUpdate(effectivePosition, sticker.scale)
                         dragOffset = .zero
                     }
             )
-    }
-
-    private func clampPosition(_ center: CGPoint, scale: CGFloat) -> CGPoint {
-        let w = nominalSize.width * scale / 2
-        let h = nominalSize.height * scale / 2
-        let minX = w
-        let maxX = canvasSize.width - w
-        let minY = h
-        let maxY = canvasSize.height - h
-        return CGPoint(
-            x: center.x.clamped(to: minX...maxX),
-            y: center.y.clamped(to: minY...maxY)
-        )
     }
 }
 
