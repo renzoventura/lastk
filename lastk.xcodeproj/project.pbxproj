@@ -45,6 +45,11 @@
 			path = lastkUITests;
 			sourceTree = "<group>";
 		};
+		C9DA46FD2F41E295008E0B0D /* fonts */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = fonts;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +84,7 @@
 				C9DA44F12F3EEFCE008E0B0D /* lastkTests */,
 				C9DA44FB2F3EEFCE008E0B0D /* lastkUITests */,
 				C9DA44E22F3EEFCD008E0B0D /* Products */,
+				C9DA46FD2F41E295008E0B0D /* fonts */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,6 +115,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C9DA44E32F3EEFCD008E0B0D /* lastk */,
+				C9DA46FD2F41E295008E0B0D /* fonts */,
 			);
 			name = lastk;
 			packageProductDependencies = (

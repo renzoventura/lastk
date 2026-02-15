@@ -53,6 +53,7 @@ struct LoginView: View {
 
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(AppSpacing.lg)
         .background(AppColors.background.ignoresSafeArea())
         .onAppear { session.clearLoginError() }

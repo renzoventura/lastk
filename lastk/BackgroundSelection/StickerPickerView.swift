@@ -40,8 +40,7 @@ struct StickerPickerView: View {
                         } label: {
                             VStack(spacing: AppSpacing.xs) {
                                 Text(option.stickerText)
-                                    .font(AppFont.secondary)
-                                    .bold()
+                                    .font(option.fontStyle.font)
                                     .foregroundStyle(AppColors.textPrimary)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.7)

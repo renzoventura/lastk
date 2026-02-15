@@ -21,6 +21,7 @@ struct ProfileAndFeedView: View {
         .scrollIndicators(.hidden)
         .background(AppColors.background.ignoresSafeArea())
         .navigationTitle("LastK")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

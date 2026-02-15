@@ -115,7 +115,7 @@ struct PhotoEditorView: View {
 
     private func addSticker(option: RunStickerOption) {
         let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
-        stickers.append(StickerItem(text: option.stickerText, position: center))
+        stickers.append(StickerItem(text: option.stickerText, position: center, fontStyle: option.fontStyle))
     }
 
     private func updateSticker(id: UUID, position: CGPoint, scale: CGFloat) {

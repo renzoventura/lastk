@@ -2,7 +2,8 @@
 //  StickerOverlayView.swift
 //  lastk
 //
-//  Renders one sticker on the canvas with drag (reposition) and pinch (resize). Keeps sticker within canvas bounds.
+//  Renders one sticker on the canvas with drag (reposition) and pinch (resize).
+//  Supports custom font styles. Keeps sticker within canvas bounds.
 //
 
 import SwiftUI
@@ -27,15 +28,7 @@ struct StickerOverlayView: View {
         let effectiveScale = sticker.scale
         let clampedPosition = clampPosition(effectivePosition, scale: effectiveScale)
 
-        Text(sticker.text)
-            .font(.subheadline)
-            .bold()
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.black.opacity(0.6), in: .capsule)
+        stickerLabel
             .scaleEffect(effectiveScale)
             .position(clampedPosition)
             .highPriorityGesture(
@@ -64,6 +57,17 @@ struct StickerOverlayView: View {
             )
     }
 
+    private var stickerLabel: some View {
+        Text(sticker.text)
+            .font(sticker.fontStyle.font)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.black.opacity(0.6), in: .capsule)
+    }
+
     private func clampPosition(_ center: CGPoint, scale: CGFloat) -> CGPoint {
         let w = nominalSize.width * scale / 2
         let h = nominalSize.height * scale / 2
@@ -90,8 +94,7 @@ struct StickerDrawingView: View {
 
     var body: some View {
         Text(sticker.text)
-            .font(.subheadline)
-            .bold()
+            .font(sticker.fontStyle.font)
             .lineLimit(1)
             .minimumScaleFactor(0.5)
             .foregroundStyle(.white)

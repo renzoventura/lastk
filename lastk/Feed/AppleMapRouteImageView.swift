@@ -4,12 +4,34 @@
 //
 //  Renders a static map image of a route using MapKit (MKMapSnapshotter).
 //  Decodes the Strava summary_polyline, fits the map to the route with padding, draws the route on the snapshot.
-//  If polyline is nil or empty, shows a placeholder. Images are generated asynchronously and cached per view.
+//  If polyline is nil or empty, shows a placeholder.
+//  Snapshots are cached in memory so recycled LazyVGrid cells display instantly (no re-render jitter).
 //
 
 import MapKit
 import SwiftUI
 import UIKit
+
+// MARK: - In-memory snapshot cache
+
+/// Thread-safe cache for rendered map snapshot images, keyed by polyline string.
+/// Prevents re-generating snapshots when LazyVGrid recycles cells during scroll.
+@MainActor
+private final class MapSnapshotCache {
+    static let shared = MapSnapshotCache()
+
+    private var cache: [String: UIImage] = [:]
+
+    func image(for polyline: String) -> UIImage? {
+        cache[polyline]
+    }
+
+    func store(_ image: UIImage, for polyline: String) {
+        cache[polyline] = image
+    }
+}
+
+// MARK: - Public view
 
 struct AppleMapRouteImageView: View {
     let polyline: String?
@@ -31,11 +53,14 @@ struct AppleMapRouteImageView: View {
             .font(.title2)
             .foregroundStyle(.tertiary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.surfaceElevated)
     }
 }
 
+// MARK: - Content (cached)
+
 private struct AppleMapRouteImageContent: View {
-    let polyline: String?
+    let polyline: String
     @State private var image: UIImage?
 
     var body: some View {
@@ -43,30 +68,40 @@ private struct AppleMapRouteImageContent: View {
             if let image {
                 Image(uiImage: image)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
             } else {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Same-sized placeholder so layout doesn't jump when image loads
+                AppColors.surfaceElevated
+                    .overlay {
+                        ProgressView()
+                            .tint(AppColors.textMuted)
+                    }
             }
         }
         .task(id: polyline) {
-            guard let polyline else { return }
+            // Check cache first — instant hit on scroll recycle
+            if let cached = MapSnapshotCache.shared.image(for: polyline) {
+                image = cached
+                return
+            }
+
             let coords = PolylineDecoder.decode(polyline)
             guard !coords.isEmpty else { return }
+
             let size = CGSize(width: 400, height: 400)
-            let snapshotImage = await makeSnapshot(coordinates: coords, size: size)
-            await MainActor.run { image = snapshotImage }
+            guard let snapshotImage = await makeSnapshot(coordinates: coords, size: size) else { return }
+
+            MapSnapshotCache.shared.store(snapshotImage, for: polyline)
+            image = snapshotImage
         }
     }
 
-    /// Uses MKMapSnapshotter to capture a map region that fits the route, then draws a minimal dark overlay and orange polyline.
     private func makeSnapshot(coordinates: [CLLocationCoordinate2D], size: CGSize) async -> UIImage? {
         let region = regionThatFits(coordinates: coordinates)
         let options = MKMapSnapshotter.Options()
         options.region = region
         options.size = size
         options.scale = 0
-//        options.mapType = .standard
         options.mapType = .mutedStandard
         let snapshotter = MKMapSnapshotter(options: options)
         return await withCheckedContinuation { continuation in
@@ -83,7 +118,10 @@ private struct AppleMapRouteImageContent: View {
 
     private func regionThatFits(coordinates: [CLLocationCoordinate2D]) -> MKCoordinateRegion {
         guard !coordinates.isEmpty else {
-            return MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 0, longitude: 0), span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1))
+            return MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+            )
         }
         var minLat = coordinates[0].latitude
         var maxLat = minLat
@@ -107,7 +145,6 @@ private struct AppleMapRouteImageContent: View {
         return MKCoordinateRegion(center: center, span: span)
     }
 
-    /// Draws the map snapshot, a dark overlay for minimal black/grey tones, then the route in orange.
     private func drawDarkMinimalWithPolyline(on snapshot: MKMapSnapshotter.Snapshot, coordinates: [CLLocationCoordinate2D]) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: snapshot.image.size)
         return renderer.image { context in
