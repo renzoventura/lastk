@@ -2,7 +2,7 @@
 //  AthleteView.swift
 //  lastk
 //
-//  Displays basic Strava athlete info and a log out button.
+//  Displays basic Strava athlete info and a log out button. Dark themed.
 //
 
 import SwiftUI
@@ -22,53 +22,61 @@ struct AthleteView: View {
                     systemImage: "person.crop.circle",
                     description: Text("Fetching your Strava profile…")
                 )
+                .foregroundStyle(AppColors.textSecondary)
             }
         }
+        .background(AppColors.background.ignoresSafeArea())
         .navigationTitle("Profile")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button("Log out", systemImage: "rectangle.portrait.and.arrow.right", action: { session.logout() })
+                Button("Log out", systemImage: "rectangle.portrait.and.arrow.right") {
+                    session.logout()
+                }
+                .foregroundStyle(AppColors.textSecondary)
             }
         }
     }
 }
 
-/// Profile content (header, details, log out). Use inside ScrollView or as the top section of a combined screen.
+/// Profile content (header, details). Dark theme with card surfaces.
 struct AthleteContentView: View {
     let athlete: StravaAthleteSummary
     let onLogOut: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
             profileHeader
             detailsSection
         }
-        .padding()
+        .padding(AppSpacing.md)
     }
 
     private var profileHeader: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: AppSpacing.md) {
             AthleteAvatarView(profileURL: athlete.profileMedium ?? athlete.profile)
-            VStack(alignment: .leading, spacing: 4) {
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text(athlete.firstname + " " + athlete.lastname)
-                    .bold()
+                    .font(AppFont.metricMedium)
+                    .foregroundStyle(AppColors.textPrimary)
                 if athlete.premium == true {
                     Text("Strava Premium")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(AppFont.metadata)
+                        .foregroundStyle(AppColors.accent)
                 }
             }
             Spacer()
         }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(.rect(cornerRadius: 12))
+        .padding(AppSpacing.md)
+        .themedCard()
     }
 
     private var detailsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Text("Details")
-                .font(.headline)
+                .font(AppFont.sectionHeader)
+                .foregroundStyle(AppColors.textPrimary)
+
             if let city = athlete.city, !city.isEmpty {
                 detailRow(label: "City", value: city)
             }
@@ -80,18 +88,20 @@ struct AthleteContentView: View {
             }
             detailRow(label: "Athlete ID", value: String(athlete.id))
         }
-        .padding()
+        .padding(AppSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial)
-        .clipShape(.rect(cornerRadius: 12))
+        .themedCard()
     }
 
     private func detailRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(.secondary)
+                .font(AppFont.secondary)
+                .foregroundStyle(AppColors.textSecondary)
             Spacer()
             Text(value)
+                .font(AppFont.secondary)
+                .foregroundStyle(AppColors.textPrimary)
         }
     }
 }
@@ -109,19 +119,24 @@ private struct AthleteAvatarView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     case .failure:
-                        Image(systemName: "person.crop.circle.fill")
-                            .foregroundStyle(.secondary)
+                        avatarPlaceholder
                     default:
                         ProgressView()
+                            .tint(AppColors.accent)
                     }
                 }
             } else {
-                Image(systemName: "person.crop.circle.fill")
-                    .foregroundStyle(.secondary)
+                avatarPlaceholder
             }
         }
-        .frame(width: 64, height: 64)
+        .frame(width: 56, height: 56)
         .clipShape(.circle)
+    }
+
+    private var avatarPlaceholder: some View {
+        Image(systemName: "person.crop.circle.fill")
+            .font(.system(size: 28))
+            .foregroundStyle(AppColors.textMuted)
     }
 }
 

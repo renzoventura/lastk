@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RootView: View {
     @Bindable var session: StravaSession
+
     @State private var feedViewModel: RunFeedViewModel?
 
     var body: some View {
@@ -19,6 +20,7 @@ struct RootView: View {
                         ProfileAndFeedView(session: session, feedViewModel: feedViewModel)
                     } else {
                         ProgressView()
+                            .tint(AppColors.accent)
                     }
                 } else {
                     LoginView(session: session)

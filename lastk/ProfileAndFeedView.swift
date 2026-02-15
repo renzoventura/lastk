@@ -2,7 +2,7 @@
 //  ProfileAndFeedView.swift
 //  lastk
 //
-//  Single screen: profile at top, run feed grid below. One scroll.
+//  Single screen: profile at top, run feed grid below. Dark immersive theme.
 //
 
 import SwiftUI
@@ -19,10 +19,15 @@ struct ProfileAndFeedView: View {
             }
         }
         .scrollIndicators(.hidden)
+        .background(AppColors.background.ignoresSafeArea())
         .navigationTitle("LastK")
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button("Log out", systemImage: "rectangle.portrait.and.arrow.right", action: { session.logout() })
+                Button("Log out", systemImage: "rectangle.portrait.and.arrow.right") {
+                    session.logout()
+                }
+                .foregroundStyle(AppColors.textSecondary)
             }
         }
         .task {
@@ -43,35 +48,42 @@ struct ProfileAndFeedView: View {
             AthleteContentView(athlete: athlete, onLogOut: { session.logout() })
         } else {
             ProgressView("Loading profile…")
+                .tint(AppColors.accent)
+                .foregroundStyle(AppColors.textSecondary)
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(AppSpacing.lg)
         }
     }
 
     private var runsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Runs")
-                .font(.headline)
-                .padding(.horizontal)
-                .padding(.top, 24)
-                .padding(.bottom, 8)
+                .font(AppFont.sectionHeader)
+                .foregroundStyle(AppColors.textPrimary)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.top, AppSpacing.lg)
+                .padding(.bottom, AppSpacing.sm)
+
             if feedViewModel.runs.isEmpty, feedViewModel.isLoading {
                 ProgressView("Loading runs…")
+                    .tint(AppColors.accent)
+                    .foregroundStyle(AppColors.textSecondary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 32)
+                    .padding(.vertical, AppSpacing.xl)
             } else if feedViewModel.runs.isEmpty, feedViewModel.loadError != nil {
                 ContentUnavailableView(
                     "Couldn't load runs",
                     systemImage: "exclamationmark.triangle",
                     description: Text(feedViewModel.loadError ?? "")
                 )
-                .padding(.vertical, 32)
+                .foregroundStyle(AppColors.textSecondary)
+                .padding(.vertical, AppSpacing.xl)
             } else {
                 LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 0),
-                    GridItem(.flexible(), spacing: 0),
-                    GridItem(.flexible(), spacing: 0)
-                ], spacing: 0) {
+                    GridItem(.flexible(), spacing: 2),
+                    GridItem(.flexible(), spacing: 2),
+                    GridItem(.flexible(), spacing: 2)
+                ], spacing: 2) {
                     ForEach(feedViewModel.runs) { item in
                         Button {
                             feedViewModel.selectedRunForBackground = item

@@ -49,10 +49,7 @@ struct PhotoEditorView: View {
     // MARK: Body
 
     var body: some View {
-        // Layer 1: Safe area management
-        // The VStack lives inside the safe area; the background bleeds edge-to-edge.
         VStack(spacing: 0) {
-            // Layer 2: Editing canvas – fills all space above the bottom bar
             EditingCanvasView(
                 image: image,
                 scaleMultiplier: $scaleMultiplier,
@@ -66,7 +63,6 @@ struct PhotoEditorView: View {
                 }
             )
 
-            // Layer 3: Fixed bottom controls
             EditorBottomActionView(
                 isSaving: isSaving,
                 onShare: { exportAndShare() },
@@ -75,9 +71,8 @@ struct PhotoEditorView: View {
             )
         }
         .background {
-            Color.black.ignoresSafeArea()
+            AppColors.background.ignoresSafeArea()
         }
-        // Layer 4: Floating overlay buttons
         .overlay {
             EditorOverlayButtons(
                 bottomBarHeight: EditorBottomActionView.height,
@@ -85,15 +80,12 @@ struct PhotoEditorView: View {
                 onAddSticker: { showStickerPicker = true }
             )
         }
-        // Feedback overlay
         .overlay {
             if saveSuccess {
                 savedFeedbackBadge
             }
         }
-        // Navigation
         .toolbar(.hidden, for: .navigationBar)
-        // Sheets
         .sheet(item: $shareItem) { shareable in
             ShareSheetView(activityItems: [shareable.image])
                 .onDisappear { shareItem = nil }
@@ -111,10 +103,11 @@ struct PhotoEditorView: View {
 
     private var savedFeedbackBadge: some View {
         Text("Saved")
-            .font(.subheadline)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(.regularMaterial, in: .capsule)
+            .font(AppFont.secondary)
+            .foregroundStyle(AppColors.textPrimary)
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
+            .background(AppColors.surfaceElevated, in: .capsule)
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
     }
 

@@ -2,57 +2,59 @@
 //  EditorBottomActionView.swift
 //  lastk
 //
-//  Layer 3: Fixed bottom control panel. Structurally independent from the canvas.
-//  Contains Share, Save, and Story buttons in a horizontal layout.
+//  Layer 3: Fixed bottom control panel. Dark theme with clear interaction states.
 //
 
 import SwiftUI
 
 /// Fixed bottom action bar for the photo editor.
-///
-/// Responsibilities:
-/// - Provides Share, Save, Story buttons.
-/// - Visually distinct from the canvas (opaque black background).
-/// - Fixed height, does not scroll or respond to canvas gestures.
 struct EditorBottomActionView: View {
     let isSaving: Bool
     let onShare: () -> Void
     let onSave: () -> Void
     let onStory: () -> Void
 
-    static let height: CGFloat = 88
+    static let height: CGFloat = 80
 
     var body: some View {
         VStack(spacing: 0) {
-            Divider()
+            Rectangle()
+                .fill(AppColors.divider)
+                .frame(height: 1)
 
             HStack {
-                actionButton("Story", systemImage: "rectangle.portrait.and.arrow.forward", action: onStory)
-                    .disabled(true)
-                    .foregroundStyle(.secondary)
+                // Story (disabled for now)
+                Button(action: onStory) {
+                    Label("Story", systemImage: "rectangle.portrait.and.arrow.forward")
+                        .font(AppFont.button)
+                }
+                .buttonStyle(GhostButtonStyle())
+                .disabled(true)
+                .opacity(0.4)
 
                 Spacer()
 
-                actionButton("Save", systemImage: "square.and.arrow.down", action: onSave)
-                    .disabled(isSaving)
+                // Save
+                Button(action: onSave) {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                        .font(AppFont.button)
+                }
+                .buttonStyle(GhostButtonStyle())
+                .disabled(isSaving)
+                .opacity(isSaving ? 0.5 : 1)
 
                 Spacer()
 
-                actionButton("Share", systemImage: "square.and.arrow.up", action: onShare)
-                    .buttonStyle(.borderedProminent)
+                // Share (primary CTA)
+                Button(action: onShare) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                .buttonStyle(AccentButtonStyle())
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, AppSpacing.md)
             .frame(maxHeight: .infinity)
         }
         .frame(height: Self.height)
-        .background(.black)
-    }
-
-    private func actionButton(
-        _ title: String,
-        systemImage: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(title, systemImage: systemImage, action: action)
+        .background(AppColors.surfaceElevated)
     }
 }

@@ -17,6 +17,8 @@ struct lastkApp: App {
                 .onOpenURL { url in
                     session.handleCallback(url: url)
                 }
+                .tint(AppColors.accent)
+                .preferredColorScheme(.dark)
         }
     }
 }

@@ -3,7 +3,7 @@
 //  lastk
 //
 //  Screen to select a background image: Camera Roll (default), Presets and Backgrounds disabled.
-//  Instagram-style flow: segmented tabs, album dropdown, 3-column photo grid.
+//  Dark theme with themed controls.
 //
 
 import SwiftUI
@@ -23,6 +23,7 @@ private struct EditorImageWrapper: Identifiable {
 struct BackgroundSelectionView: View {
     let runItem: RunFeedItem
     var onDismiss: (() -> Void)?
+
     @State private var selectedSegment: BackgroundSourceSegment = .cameraRoll
     @State private var photoService = PhotoLibraryService()
     @State private var loadingAssetForEditor: PhotoAssetItem?
@@ -38,8 +39,10 @@ struct BackgroundSelectionView: View {
                 disabledPlaceholder
             }
         }
+        .background(AppColors.background.ignoresSafeArea())
         .navigationTitle("Select Background")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .task {
             await photoService.prepare()
         }
@@ -55,9 +58,11 @@ struct BackgroundSelectionView: View {
         }
         .overlay {
             if loadingAssetForEditor != nil {
-                Color.black.opacity(0.4)
+                AppColors.overlay
                     .ignoresSafeArea()
                 ProgressView("Loading…")
+                    .tint(AppColors.accent)
+                    .foregroundStyle(AppColors.textSecondary)
             }
         }
     }
@@ -69,8 +74,8 @@ struct BackgroundSelectionView: View {
             }
         }
         .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.vertical, AppSpacing.sm)
     }
 
     @ViewBuilder
@@ -83,15 +88,17 @@ struct BackgroundSelectionView: View {
                     }
                 }
             } label: {
-                HStack {
+                HStack(spacing: AppSpacing.xs) {
                     Text(selected.title)
+                        .font(AppFont.secondary)
+                        .foregroundStyle(AppColors.textPrimary)
                     Image(systemName: "chevron.down")
-                        .font(.caption2)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary)
                 }
-                .font(.subheadline)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -104,6 +111,7 @@ struct BackgroundSelectionView: View {
                 systemImage: "photo.on.rectangle.angled",
                 description: Text(error)
             )
+            .foregroundStyle(AppColors.textSecondary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
@@ -133,6 +141,7 @@ struct BackgroundSelectionView: View {
             systemImage: "photo.stack",
             description: Text("Presets and custom backgrounds will be available in a future update.")
         )
+        .foregroundStyle(AppColors.textSecondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
