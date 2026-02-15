@@ -24,6 +24,8 @@ StravaSecrets.xcconfig
 # Large media
 *.MP4
 *.mp4
+*.mov
+*.MOV
 
 # macOS
 .DS_Store
