@@ -21,7 +21,7 @@ private struct EditorImageWrapper: Identifiable {
 }
 
 struct BackgroundSelectionView: View {
-    let runItem: RunFeedItem?
+    let runItem: RunFeedItem
     var onDismiss: (() -> Void)?
     @State private var selectedSegment: BackgroundSourceSegment = .cameraRoll
     @State private var photoService = PhotoLibraryService()
@@ -48,7 +48,7 @@ struct BackgroundSelectionView: View {
         }
         .fullScreenCover(item: $imageForEditor) { wrapper in
             NavigationStack {
-                PhotoEditorView(image: wrapper.image) {
+                PhotoEditorView(runItem: runItem, image: wrapper.image) {
                     imageForEditor = nil
                 }
             }
@@ -153,6 +153,17 @@ struct BackgroundSelectionView: View {
 
 #Preview {
     NavigationStack {
-        BackgroundSelectionView(runItem: nil, onDismiss: nil)
+        BackgroundSelectionView(
+            runItem: RunFeedItem(
+                id: 1,
+                distanceKm: 5.42,
+                pacePerKmDisplay: "5:17",
+                movingTimeSeconds: 1924,
+                dateDisplay: "Jan 15, 2026",
+                locationDisplay: "San Francisco, CA",
+                polyline: nil
+            ),
+            onDismiss: nil
+        )
     }
 }

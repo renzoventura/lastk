@@ -24,18 +24,3 @@ struct StickerItem: Identifiable, Equatable {
         self.scale = scale
     }
 }
-
-/// Mock sticker options for the picker. Can later be driven by run card data.
-enum StickerOption: String, CaseIterable, Identifiable {
-    case distance = "5.42 KM"
-    case location = "San Francisco"
-    case pace = "5:17 /km"
-    case elevation = "120 m"
-    case time = "32:04"
-    case distanceBadge = "42 KM"
-    case styledStat = "10K"
-
-    var id: String { rawValue }
-
-    var displayText: String { rawValue }
-}

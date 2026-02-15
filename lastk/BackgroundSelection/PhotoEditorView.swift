@@ -26,6 +26,7 @@ struct ShareableImage: Identifiable {
 // MARK: - PhotoEditorView
 
 struct PhotoEditorView: View {
+    let runItem: RunFeedItem
     let image: UIImage
     let onDismiss: () -> Void
 
@@ -99,6 +100,7 @@ struct PhotoEditorView: View {
         }
         .sheet(isPresented: $showStickerPicker) {
             StickerPickerView(
+                options: runItem.stickerOptions,
                 onSelect: { addSticker(option: $0) },
                 onDismiss: { showStickerPicker = false }
             )
@@ -118,9 +120,9 @@ struct PhotoEditorView: View {
 
     // MARK: - Sticker management
 
-    private func addSticker(option: StickerOption) {
+    private func addSticker(option: RunStickerOption) {
         let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
-        stickers.append(StickerItem(text: option.displayText, position: center))
+        stickers.append(StickerItem(text: option.stickerText, position: center))
     }
 
     private func updateSticker(id: UUID, position: CGPoint, scale: CGFloat) {
@@ -197,6 +199,15 @@ struct ShareSheetView: UIViewControllerRepresentable {
 #Preview {
     NavigationStack {
         PhotoEditorView(
+            runItem: RunFeedItem(
+                id: 1,
+                distanceKm: 5.42,
+                pacePerKmDisplay: "5:17",
+                movingTimeSeconds: 1924,
+                dateDisplay: "Jan 15, 2026",
+                locationDisplay: "San Francisco, CA",
+                polyline: nil
+            ),
             image: UIImage(systemName: "photo")!,
             onDismiss: {}
         )

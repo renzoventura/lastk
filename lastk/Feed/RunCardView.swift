@@ -46,7 +46,9 @@ struct RunCardView: View {
             id: 1,
             distanceKm: 5.42,
             pacePerKmDisplay: "5:17",
+            movingTimeSeconds: 1924,
             dateDisplay: "Jan 15, 2024",
+            locationDisplay: "San Francisco, CA",
             polyline: nil
         )
     )

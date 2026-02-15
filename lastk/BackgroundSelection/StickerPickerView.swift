@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct StickerPickerView: View {
-    var onSelect: (StickerOption) -> Void
+    let options: [RunStickerOption]
+    var onSelect: (RunStickerOption) -> Void
     var onDismiss: () -> Void
 
     private let columns = [
@@ -30,12 +31,12 @@ struct StickerPickerView: View {
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(StickerOption.allCases) { option in
+                    ForEach(options) { option in
                         Button {
                             onSelect(option)
                             onDismiss()
                         } label: {
-                            Text(option.displayText)
+                            Text(option.stickerText)
                                 .font(.subheadline)
                                 .bold()
                                 .lineLimit(1)
