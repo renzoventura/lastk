@@ -21,5 +21,9 @@ StravaSecrets.xcconfig
 .env
 .env.*
 
+# Large media
+*.MP4
+*.mp4
+
 # macOS
 .DS_Store
